@@ -22,6 +22,8 @@ Dialog::Dialog(QWidget *parent) :
     QDialog(parent),
     lastaddORdel(true),
     lastPosition(0),
+    startPosition(0),
+    isStart(true),
     lastLength(0),
     ui(new Ui::Dialog)
 {
@@ -259,9 +261,16 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
 
     if (!tryMerge(position,addLength))
     {
-        postInfo(position,addLength);
-        textVersion = textChanged;
 
+        postInfo(startPosition,addLength);
+        textVersion = textChanged;
+        lastLength = 1;
+        startPosition = position;
+//        lastPosition = position;
+    }
+    else
+    {
+//        firstPosition = position;
 
     }
     lastText = myText->toPlainText();
@@ -278,7 +287,7 @@ bool Dialog::postInfo(int position, int length)
             <<query.exec(QString("INSERT INTO %1 (position, length, word, addORdel, mode) VALUES (%2,%3,'%4',%5,1);")
                          .arg(fileIO.name)
                          .arg(position)
-                         .arg(length)
+                         .arg(lastLength)
                          .arg(textVersion)
                          .arg(lastaddORdel))
             <<query.lastError().text();
@@ -300,6 +309,7 @@ bool Dialog::tryMerge(int position, int length)
 {    
     if (addORdel != lastaddORdel)
     {
+        isStart =true;
         return false;
     }
 
@@ -307,8 +317,10 @@ bool Dialog::tryMerge(int position, int length)
         (lastPosition + length == position) /*&&
         (strPos + length == other.strPos)*/)
     {
+        startPosition = isStart?position:startPosition;
         lastLength += length;
         textVersion += textChanged;
+        isStart =false;
         return true;
     }
 
@@ -317,28 +329,31 @@ bool Dialog::tryMerge(int position, int length)
         (lastPosition == position) /*&&
         (strPos + length == other.strPos)*/)
     {
+        startPosition = isStart?position:startPosition;
         lastLength += length;
         textVersion += textChanged;
+        isStart =false;
         return true;
     }
 
-        // removal to the 'left' using 'Backspace'
-//    if (command == Removed
-//            && (other.pos + other.length == pos)
-//            && (other.strPos + other.length == strPos)
-//            && (format == other.format)) {
-
-//            int l = length;
-//            (*this) = other;
-
-//            length += l;
-//            return true;
-//        }
+    // removal to the 'left' using 'Backspace'
+    if ((lastaddORdel == false) &&
+        (position + length == lastPosition) /*&&
+        (other.strPos + other.length == strPos)*/)
+    {
+        startPosition = position;
+        lastLength += length;
+        textVersion += textChanged;
+        isStart =false;
+        return true;
+    }
 
     if ((lastPosition ==0) && (lastaddORdel ==true))
     {
+        startPosition = isStart?position:startPosition;
         lastLength += length;
         textVersion += textChanged;
+        isStart =false;
         return true;
     }
     return false;

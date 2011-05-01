@@ -52,6 +52,8 @@ private:
     bool addORdel;/*保存操作类型*/
 
     int lastPosition;/*上次光标位置*/
+    int startPosition;/*开始记录数据的位置*/
+    bool isStart;/*只在第一次保存开始位置*/
     int lastLength;/*上次修改长度*/
     QString lastText; /*在任何改动生效之前保存上一次的字符串*/
     bool lastaddORdel;/*上次的操作类型*/
