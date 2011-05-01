@@ -327,8 +327,8 @@ bool Dialog::postInfo(int position, int length)
                          .arg(fileIO.name)
                          .arg(position)
                          .arg(length)
-                         .arg(textVersion)
-                         .arg(lastaddORdel))
+                         .arg(textChanged)
+                         .arg(addORdel))
             <<query.lastError().text();
     //接着广播消息什么的
 }
