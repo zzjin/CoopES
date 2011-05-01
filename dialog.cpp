@@ -227,53 +227,53 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
   *1.2 改变了光标之后的改变->写数据库,记录新光标位置
   *2 有输入法,新增文字->直接将变化了的文字输入到数据库
  */
-    //对于连续的输入.进行字符插入而不写入数据库
-    if ((addLength == 0) && (deleteLenght == 1)) /*删除的话不知道有没有什么hook能显式的截获输出*/
-    {
-        //只有在新增的时候保存一个string的备份.在删除的时候进行跟新了.
-        //在这里处理删除操作的文字
-        addLength = deleteLenght;
-        qDebug()<<tr("delete")<<(textChanged=lastText.mid(position,addLength));
-        addORdel=false;
-    }
-    if ((addLength == 1) && (deleteLenght == 0))
-    {
-        qDebug()<<(textChanged=myText->toPlainText().mid(position,addLength));
-        addORdel=true;
-    }
-    if (
-            (
-                (
-                    (position==0) &&
-                    (lastPosition ==0)
-                ) ||
-                (abs(position-lastPosition) == 1)
-            ) &&
-            (lastaddORdel == addORdel)
-       )
-    {
-        //连续新增或者删除字符
-        textVersion += textChanged;
-    }
-    if ((lastaddORdel != addORdel) || (abs(position-lastPosition)!=1))
-    {
-        postInfo(position,addLength);
-        textVersion = textChanged;
-    }
+//    //对于连续的输入.进行字符插入而不写入数据库
+//    if ((addLength == 0) && (deleteLenght == 1)) /*删除的话不知道有没有什么hook能显式的截获输出*/
+//    {
+//        //只有在新增的时候保存一个string的备份.在删除的时候进行跟新了.
+//        //在这里处理删除操作的文字
+//        addLength = deleteLenght;
+//        qDebug()<<tr("delete")<<(textChanged=lastText.mid(position,addLength));
+//        addORdel=false;
+//    }
+//    if ((addLength == 1) && (deleteLenght == 0))
+//    {
+//        qDebug()<<(textChanged=myText->toPlainText().mid(position,addLength));
+//        addORdel=true;
+//    }
+//    if (
+//            (
+//                (
+//                    (position==0) &&
+//                    (lastPosition ==0)
+//                ) ||
+//                (abs(position-lastPosition) == 1)
+//            ) &&
+//            (lastaddORdel == addORdel)
+//       )
+//    {
+//        //连续新增或者删除字符
+//        textVersion += textChanged;
+//    }
+//    if ((lastaddORdel != addORdel) || (abs(position-lastPosition)!=1))
+//    {
+//        postInfo(position,addLength);
+//        textVersion = textChanged;
+//    }
 
-    //输入法的存在导致了新增数据的时候多个增删长度的出现.单独考虑
-    if ((deleteLenght != 0) && /*删掉之前的所有文字*/
-        (addLength != 0)){ /*新增多的文字*/
-        //当删掉最后一个字的时候会产生"0,1,0"的意外情况直接处理.无视之
-        //处理新增的文字
-        position = position+deleteLenght-1;
-        addLength = abs(addLength - deleteLenght);
-        qDebug()<<(textVersion=myText->toPlainText().mid(position,addLength));
-        addORdel=true;
-        postInfo(position,addLength);
-        textVersion="";
-//        直接写入数据库?
-    }
+//    //输入法的存在导致了新增数据的时候多个增删长度的出现.单独考虑
+//    if ((deleteLenght != 0) && /*删掉之前的所有文字*/
+//        (addLength != 0)){ /*新增多的文字*/
+//        //当删掉最后一个字的时候会产生"0,1,0"的意外情况直接处理.无视之
+//        //处理新增的文字
+//        position = position+deleteLenght-1;
+//        addLength = abs(addLength - deleteLenght);
+//        qDebug()<<(textVersion=myText->toPlainText().mid(position,addLength));
+//        addORdel=true;
+//        postInfo(position,addLength);
+//        textVersion="";
+////        直接写入数据库?
+//    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     //尝试合并相同的操作
