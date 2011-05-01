@@ -249,7 +249,6 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
         qDebug()<<tr("delete")
                 <<(textChanged=lastText.mid(position,addLength));
         addORdel= false;
-
         //OK
     }
     else
@@ -267,6 +266,7 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
     }
     lastText = myText->toPlainText();
     lastPosition = position;
+    lastaddORdel = addORdel;
     if (lastText.isEmpty())
         qDebug()<<tr("text data empty!");
 }
@@ -280,7 +280,7 @@ bool Dialog::postInfo(int position, int length)
                          .arg(position)
                          .arg(length)
                          .arg(textVersion)
-                         .arg(addORdel))
+                         .arg(lastaddORdel))
             <<query.lastError().text();
     //接着广播消息什么的
 }
