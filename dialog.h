@@ -42,7 +42,7 @@ private:
     //本地版本数据库
     QSqlDatabase versionDB;
     fileInfo fileIO;
-    bool tryMerge();/*尝试合并操作*/
+    bool tryMerge(int position, int length);/*尝试合并操作*/
     bool getInfo(int position, int length);/*收到的操作*/
     bool postInfo(int position, int length);/*要进行记录的操作*/
 
