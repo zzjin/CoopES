@@ -42,3 +42,6 @@ RESOURCES +=
 
 TRANSLATIONS = CoopES_zh_CN.ts \
                CoopES_en.ts
+
+OTHER_FILES += \
+    README
