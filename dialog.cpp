@@ -236,6 +236,11 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
         //处理新增的文字
         position = position+deleteLenght-1;
         addLength = (uint)(addLength - deleteLenght);
+//        postInfo(position,addLength);
+//        lastText = myText->toPlainText();
+//        lastPosition = position;
+        addORdel= true;
+        return ;
     }
     if (addLength == 0){/*删除的话不知道有没有什么hook能显式的截获输出*/
         //只有在新增的时候保存一个string的备份.在删除的时候进行跟新了.
@@ -243,7 +248,7 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
         addLength = deleteLenght;
         qDebug()<<tr("delete")
                 <<(textChanged=lastText.mid(position,addLength));
-        addORdel=0;
+        addORdel= false;
 
         //OK
     }
@@ -252,9 +257,16 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
         qDebug()<<(textChanged=myText->toPlainText().mid(position,addLength));
         addORdel=true;
     }
+
     if (!tryMerge(position,addLength))
+    {
         postInfo(position,addLength);
+        textVersion = textChanged;
+
+
+    }
     lastText = myText->toPlainText();
+    lastPosition = position;
     if (lastText.isEmpty())
         qDebug()<<tr("text data empty!");
 }
@@ -267,7 +279,7 @@ bool Dialog::postInfo(int position, int length)
                          .arg(fileIO.name)
                          .arg(position)
                          .arg(length)
-                         .arg(textChanged)
+                         .arg(textVersion)
                          .arg(addORdel))
             <<query.lastError().text();
     //接着广播消息什么的
@@ -277,14 +289,6 @@ bool Dialog::getInfo(int position, int length)
 {
 
 }
-
-
-
-
-//void Dialog::pushCursor()
-//{
-//    qDebug()<<"Cursor Changed";
-//}
 
 /*拟解决的问题:用户输入英文就直接开始记录数据库导致的数据库数据过多
   有两种方案:
@@ -319,7 +323,7 @@ bool Dialog::tryMerge(int position, int length)
     }
 
         // removal to the 'left' using 'Backspace'
-//        if (command == Removed
+//    if (command == Removed
 //            && (other.pos + other.length == pos)
 //            && (other.strPos + other.length == strPos)
 //            && (format == other.format)) {
@@ -331,180 +335,11 @@ bool Dialog::tryMerge(int position, int length)
 //            return true;
 //        }
 
-        return false;
-//    //两次操作不一样
-//    if (addORdel != addORdelOld)
-//    {
-//        QSqlQuery query;
-//        qDebug()<<"database operation:"
-//                <<query.exec(QString("INSERT INTO %1 (position, length, word, addORdel, mode) VALUES (%2,%3,'%4',%5,1);")
-//                             .arg(fileIO.name)
-//                             .arg(position)
-//                             .arg(addLength)
-//                             .arg(textVersion)
-//                             .arg(addORdel))
-//                <<query.lastError().text();
-//        textVersion=textChanged;
-////        version_Temp="";
-//        addORdelOld=addORdel;
-//        return false;
-//    }
-//    else
-//    {
-//         textVersion += textChanged;
-//         addORdelOld=addORdel;
-//         return true;
-//    }
-    //还可以有其他方式来实现
-
+    if ((lastPosition ==0) && (lastaddORdel ==true))
+    {
+        lastLength += length;
+        textVersion += textChanged;
+        return true;
+    }
+    return false;
 }
-
-//下面是两个函数的备份
-
-//bool Dialog::tryMerge(/*const QTextUndoCommand &other*/)
-//{
-//    if (command != other.command)
-//        return false;
-
-//    if (command == Inserted
-//        && (pos + length == other.pos)
-//        && (strPos + length == other.strPos)
-//        && format == other.format) {
-
-//        length += other.length;
-//        return true;
-//    }
-
-//    // removal to the 'right' using 'Delete' key
-//    if (command == Removed
-//        && pos == other.pos
-//        && (strPos + length == other.strPos)
-//        && format == other.format) {
-
-//        length += other.length;
-//        return true;
-//    }
-
-//    // removal to the 'left' using 'Backspace'
-//    if (command == Removed
-//        && (other.pos + other.length == pos)
-//        && (other.strPos + other.length == strPos)
-//        && (format == other.format)) {
-
-//        int l = length;
-//        (*this) = other;
-
-//        length += l;
-//        return true;
-//    }
-
-//    return false;
-//}
-
-//void Dialog::getContent(int position,int deleteLenght,int addLength)
-//{
-//    if (deleteLenght == addLength)/*我也不知道为什么会有那么多相等出现*/
-//        //直接返回.不处理
-//        return ;
-//    qDebug()<<tr("cursor position")<<position<<tr("deleted lenght")<<deleteLenght<<tr("add lenght")<<addLength;
-//    //新增与删除两个部分分开
-//    /*判断是否输入了非英文字符*/
-//    /*使用输入发之后就会出现这个问题.*/
-//    if ((deleteLenght != 0) && /*删掉之前的所有文字*/
-//        (addLength != 0)){ /*新增多的文字*/
-//        //当删掉最后一个字的时候会产生"0,1,0"的意外情况直接处理.无视之
-//        //处理新增的文字
-//        position = position+deleteLenght-1;
-//        addLength = (uint)(addLength - deleteLenght);
-//    }
-//    if (addLength == 0){/*删除的话不知道有没有什么hook能显式的截获输出*/
-//        //只有在新增的时候保存一个string的备份.在删除的时候进行跟新了.
-//        //在这里处理删除操作的文字
-//        addLength = deleteLenght;
-//        qDebug()<<tr("delete")
-//                <<(text_Temp=text_Backup.mid(position,addLength));
-//        addORdel=0;
-//        //OK
-//    }
-//    else
-//    {
-//        qDebug()<<(text_Temp=myText->toPlainText().mid(position,addLength));
-//        addORdel=true;
-//    }
-//    QSqlQuery query;
-//    qDebug()<<"database operation:"
-//            <<query.exec(QString("INSERT INTO %1 (position, length, word, addORdel, mode) VALUES (%2,%3,'%4',%5,1);")
-//                         .arg(fileIO.name)
-//                         .arg(position)
-//                         .arg(addLength)
-//                         .arg(text_Temp)
-//                         .arg(addORdel))
-//            <<query.lastError().text();
-//    text_Backup = myText->toPlainText();
-//    if (text_Backup.isEmpty())
-//        qDebug()<<tr("text data empty!");
-//    return ;
-//}
-
-//对于连续的输入.进行字符插入而不写入数据库
-//    if ((addLength == 0) && (deleteLenght == 1)) /*删除的话不知道有没有什么hook能显式的截获输出*/
-//    {
-//        //只有在新增的时候保存一个string的备份.在删除的时候进行跟新了.
-//        //在这里处理删除操作的文字
-//        addLength = deleteLenght;
-//        qDebug()<<tr("delete")<<(textChanged=lastText.mid(position,addLength));
-//        addORdel=false;
-//    }
-//    if ((addLength == 1) && (deleteLenght == 0))
-//    {
-//        qDebug()<<(textChanged=myText->toPlainText().mid(position,addLength));
-//        addORdel=true;
-//    }
-//    if (
-//            (
-//                (
-//                    (position==0) &&
-//                    (lastPosition ==0)
-//                ) ||
-//                (abs(position-lastPosition) == 1)
-//            ) &&
-//            (lastaddORdel == addORdel)
-//       )
-//    {
-//        //连续新增或者删除字符
-//        textVersion += textChanged;
-//    }
-//    if ((lastaddORdel != addORdel) || (abs(position-lastPosition)!=1))
-//    {
-//        postInfo(position,addLength);
-//        textVersion = textChanged;
-//    }
-
-//    //输入法的存在导致了新增数据的时候多个增删长度的出现.单独考虑
-//    if ((deleteLenght != 0) && /*删掉之前的所有文字*/
-//        (addLength != 0)){ /*新增多的文字*/
-//        //当删掉最后一个字的时候会产生"0,1,0"的意外情况直接处理.无视之
-//        //处理新增的文字
-//        position = position+deleteLenght-1;
-//        addLength = abs(addLength - deleteLenght);
-//        qDebug()<<(textVersion=myText->toPlainText().mid(position,addLength));
-//        addORdel=true;
-//        postInfo(position,addLength);
-//        textVersion="";
-////        直接写入数据库?
-//    }
-
-//    ///////////////////////////////////////////////////////////////////////////////////////////
-//    //尝试合并相同的操作
-//    //两次操作不一样
-////    if (addORdel != lastaddORdel)
-////    {
-
-////        textVersion=textChanged;
-////    }
-////    else
-////    {
-////         textVersion += textChanged;
-////    }
-//    lastPosition = position;
-//    lastaddORdel=addORdel;
