@@ -1,10 +1,4 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2011-03-15T15:50:03
-#
-#-------------------------------------------------
-
-QT          += core gui xml network sql
+QT += core gui xml network sql
 
 TARGET      = CoopES
 DESTDIR     = ./bin
@@ -13,29 +7,35 @@ CONFIG      += qt\
             warn_on\
             debug\
             console
-#语法高亮头文件
-INCLUDEPATH =  ./include/ssyntax
-#不同的平台对应的库不一样
+#syntax highlightter include PATH
+INCLUDEPATH +=  ./include/ssyntax
+#log4qt include PATH
+INCLUDEPATH += ./include/log4qt
+#different plaform with different libs
 win32{
     LIBS += ./lib/windows/libqtsourceview.a
+    LIBS +=./lib/windows/liblog4qt1.a
 }
 unix{
     LIBS += ./lib/linux/libqtsourceview.a
+    LIBS +=./lib/linux/liblog4qt1.a
 }
 SOURCES     += main.cpp\
             dialog.cpp \
-    fileinfo.cpp
+    fileinfo.cpp \
+    coopnetwork.cpp
 HEADERS     += dialog.h \
     config.h \
-    fileinfo.h
+    fileinfo.h \
+    coopnetwork.h
 FORMS       += dialog.ui
-#指定uic命令将.ui文件转化成ui_*.h文件的存放的目录
+#choose where to put the ui_*.h files
 UI_DIR += ./tmp
-#指定rcc命令将.qrc文件转换成qrc_*.h文件的存放目录
+#use the 'rcc' cofig to choose where to put the qrc_*.h files
 RCC_DIR += ./tmp
-#指定moc命令将含Q_OBJECT的头文件转换成标准.h文件的存放目录
+#use the 'moc' cofig to choose where to put the standad *.h files
 MOC_DIR += ./tmp
-#指定目标文件的存放目录
+#choose the target directory
 OBJECTS_DIR += ./tmp
 
 RESOURCES +=
@@ -43,6 +43,5 @@ RESOURCES +=
 TRANSLATIONS = CoopES_zh_CN.ts \
                CoopES_en.ts
 
-OTHER_FILES += \
-    README \
+OTHER_FILES += README \
     generalBackup.txt

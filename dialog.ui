@@ -90,8 +90,8 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>60</width>
-     <height>48</height>
+     <width>120</width>
+     <height>96</height>
     </size>
    </property>
    <property name="text">
@@ -127,8 +127,8 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>60</width>
-     <height>48</height>
+     <width>120</width>
+     <height>96</height>
     </size>
    </property>
    <property name="text">
@@ -164,8 +164,8 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>60</width>
-     <height>48</height>
+     <width>120</width>
+     <height>96</height>
     </size>
    </property>
    <property name="text">
@@ -201,8 +201,8 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>60</width>
-     <height>48</height>
+     <width>120</width>
+     <height>96</height>
     </size>
    </property>
    <property name="text">
@@ -239,6 +239,9 @@
      <width>32</width>
      <height>20</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(255, 255, 255);</string>
    </property>
    <property name="text">
     <string>Send</string>
@@ -363,6 +366,18 @@
      <height>20</height>
     </rect>
    </property>
+   <property name="minimumSize">
+    <size>
+     <width>120</width>
+     <height>20</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>240</width>
+     <height>40</height>
+    </size>
+   </property>
    <property name="duplicatesEnabled">
     <bool>false</bool>
    </property>
@@ -379,6 +394,18 @@
      <height>20</height>
     </rect>
    </property>
+   <property name="minimumSize">
+    <size>
+     <width>120</width>
+     <height>20</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>240</width>
+     <height>40</height>
+    </size>
+   </property>
    <property name="frame">
     <bool>true</bool>
    </property>
@@ -386,9 +413,9 @@
   <widget class="QLabel" name="highlightLabel">
    <property name="geometry">
     <rect>
-     <x>625</x>
+     <x>628</x>
      <y>21</y>
-     <width>52</width>
+     <width>60</width>
      <height>48</height>
     </rect>
    </property>

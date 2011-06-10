@@ -31,6 +31,20 @@ Dialog::Dialog(QWidget *parent) :
     ui->setupUi(this);
     ui->statusInfo->hide();
     ui->versionList->hide();
+    ui->onduButton->installEventFilter(this);
+    ui->redoButton->installEventFilter(this);
+    ui->printButton->installEventFilter(this);
+    ui->saveButton->installEventFilter(this);
+    ui->syntaxCombo->installEventFilter(this);
+    ui->colorCombo->installEventFilter(this);
+    ui->chatLine->installEventFilter(this);
+    ui->chatPushButton->installEventFilter(this);
+
+    //send button color problem
+    //set with a white
+//    ui->chatPushButton->set
+
+    this->setAttribute(Qt::WA_Hover);
 
     //取消系统自带的标题栏
     this->setWindowFlags(Qt::FramelessWindowHint);
@@ -38,9 +52,21 @@ Dialog::Dialog(QWidget *parent) :
     //关联对应的hook到自己的槽(核心)
     connect(ui->mainTextEdit->document(),SIGNAL(contentsChange(int,int,int)),this,SLOT(getContent(int,int,int)));
     myText = ui->mainTextEdit->document();
-//    connect(ui->mainTextEdit,SIGNAL(cursorPositionChanged()),this,SLOT(pushCursor()));
+    //    connect(ui->mainTextEdit,SIGNAL(cursorPositionChanged()),this,SLOT(pushCursor()));
 
+    connect(ui->saveButton,SIGNAL(clicked()),this,SLOT(showDebug()));//debug use only
+
+    connect(ui->chatPushButton,SIGNAL(clicked()),this,SLOT(sendChat()));
+
+    Log4Qt::LogManager::setHandleQtMessages(true);
     QTimer::singleShot(0,this,SLOT(programInit()));
+}
+
+Dialog::~Dialog()
+{
+    delete ui;
+    versionDB.close();
+    coopConn->disconnectHost ();
 }
 
 void Dialog::setFile(fileInfo fileName)
@@ -51,11 +77,72 @@ void Dialog::setFile(fileInfo fileName)
     fileIO.path=fileName.path;
 }
 
-Dialog::~Dialog()
+void Dialog::setUserName (QString userName)
 {
-    delete ui;
-    versionDB.close();
+    mUserName = userName;
+    if (ZZTEST)
+        mUserName="test";
 }
+
+void Dialog::sendChat ()
+{
+    QString pTemp = mUserName+":";
+    pTemp+=ui->chatLine->text ();
+    coopConn->send (10,pTemp);
+}
+
+void Dialog::getChat (int getType, QString data)
+{
+    if (getType==10)
+    {
+        chatListItem = new QListWidgetItem(data,ui->chatList);
+        ui->chatList->addItem (chatListItem);
+    }
+    ui->chatLine->clear ();
+}
+
+void Dialog::showDebug ()
+{
+    qDebug()<<"'c''e''s''h''i''SPACE'";
+}
+
+bool Dialog::eventFilter(QObject *object, QEvent *event)
+{
+    if (event->type()!=QEvent::Enter && event->type()!=QEvent::Leave)
+        return false;
+    enterOrLeave=event->type() == QEvent::Enter?true:false;
+    widgetTemp=((QWidget *)object);
+    if (enterOrLeave)
+        fitPairs[widgetTemp]=qMakePair(widgetTemp->pos(),widgetTemp->size());//插入默认的位置，大小信息
+    //    QTimer::singleShot(0,this,SLOT(delayedAni()));
+    delayedAni();
+    return false;
+}
+
+void Dialog::delayedAni()
+{
+    sTemp=fitPairs[widgetTemp].second;
+    pTemp=fitPairs[widgetTemp].first;
+    if (enterOrLeave)
+    {
+        widgetTemp->resize((sTemp*1.2));
+        //下面几行代码判断是否缩放之后是否出界
+        int x=pTemp.x()-(sTemp.width()*0.1);
+        int y=pTemp.y()-(sTemp.height()*0.1);
+        x=x<0?0:x;
+        x=x>(this->width()-sTemp.width()*1.2)?(this->width()-sTemp.width()*1.2):x;
+        y=y<0?0:y;
+        y=y>(this->height()-sTemp.height()*1.2)?(this->width()-sTemp.height()*1.2):y;
+        //over
+        widgetTemp->move(x,y);
+    }
+    else
+    {
+        widgetTemp->resize(sTemp);
+        widgetTemp->move(pTemp);
+    }
+}
+
 //自己实现的窗口拖动操作
 void Dialog::mouseMoveEvent(QMouseEvent *event)
 {
@@ -71,22 +158,22 @@ void Dialog::mouseMoveEvent(QMouseEvent *event)
         QPoint upleft = pos0 + newpos - last ;
         move(upleft);
     }
-//    if ( temp.x()>795 &&
-//         temp.x()<800 &&
-//         temp.y()>70  &&
-//         temp.y()<580 )
-//    {
-//        //显示版本信息
-//        ui->versionList->show();
-//    }
-//    if ( (temp.x()>0 &&
-//         temp.x()<590) ||
-//         (temp.y()>0  &&
-//         temp.y()<70) )
-//    {
-//        //隐藏版本信息
-//        ui->versionList->hide();
-//    }
+    //    if ( temp.x()>795 &&
+    //         temp.x()<800 &&
+    //         temp.y()>70  &&
+    //         temp.y()<580 )
+    //    {
+    //        //显示版本信息
+    //        ui->versionList->show();
+    //    }
+    //    if ( (temp.x()>0 &&
+    //         temp.x()<590) ||
+    //         (temp.y()>0  &&
+    //         temp.y()<70) )
+    //    {
+    //        //隐藏版本信息
+    //        ui->versionList->hide();
+    //    }
 }
 
 void Dialog::mousePressEvent(QMouseEvent *event)
@@ -112,7 +199,7 @@ void Dialog::paintEvent(QPaintEvent *)
     /*mask,使用图片的遮照来遮照窗口*/
     setMask(temp.mask());
     temp.scaled(800,580);
-//    painter.setOpacity(0.2);
+    //    painter.setOpacity(0.2);
     //暂时不开启
     painter.drawPixmap(0,0,temp);
 }
@@ -127,26 +214,35 @@ int Dialog::programInit()
     int tempColor =245;
     pal.setColor(QPalette::Background, QColor(tempColor, tempColor, tempColor));
     ui->mainTextEdit->setPalette(pal);
-//    dataPath  = QApplication::applicationDirPath();
+    //    dataPath  = QApplication::applicationDirPath();
     QTimer::singleShot( 0, this, SLOT(fillComboBoxes()));
     /////////////////////////////////////////////////////
     //创建数据库链接
     versionDB = QSqlDatabase::addDatabase("QSQLITE");
-    versionDB.setDatabaseName("./user/version.sqlite");
-//    if (ZZTEST)
-//        versionDB.setDatabaseName(":memory:");
+    versionDB.setDatabaseName("./user/version.db");
+    //    if (ZZTEST)
+    //        versionDB.setDatabaseName(":memory:");
     if (!(versionDB.open()))
         return -1;
-    qDebug()<<"open database"<<versionDB.databaseName()<<":"<< versionDB.isOpen();
+    logger()->info()<<tr("open database")<<versionDB.databaseName()<<tr(":")<< versionDB.isOpen();
     QSqlQuery query;
-    qDebug()<<"create table if not exist :"
-            <<query.exec(QString("CREATE TABLE IF NOT EXISTS  %1 %2")
-                         .arg(fileIO.name)
-                         /*addORdel:1表示增加,0表示删除*/
-                         /*mode:1表示本地,0表示远程*/
-                         .arg("(index_id INTEGER PRIMARY KEY AUTOINCREMENT, position INT, length INT, word TEXT, addORdel SMALLINT, mode SMALLINT);"))
-            <<query.lastError().text();
+    logger()->info()<<tr("create table if not exist :")
+                    <<query.exec(QString("CREATE TABLE IF NOT EXISTS  %1 %2")
+                                 .arg(fileIO.name)
+                                 /*addORdel:1表示增加,0表示删除*/
+                                 /*mode:1表示本地,0表示远程*/
+                                 .arg("(index_id INTEGER PRIMARY KEY AUTOINCREMENT, position INT, length INT, word TEXT, addORdel SMALLINT, mode SMALLINT);"))
+                    <<query.lastError().text();
+    //不知道在哪出现了stringlist的重载啊。
     qDebug()<<versionDB.tables();
+    //    logger()->info()<<temp;
+    //init internet connect
+    coopConn = new  CoopNetwork(this);
+//    coopConn->set ("118.229.175.27");
+    coopConn->set ();
+    connect(coopConn,SIGNAL(state(QString)),this,SLOT(pushStatusInfo(QString)));
+    connect(coopConn,SIGNAL(get(int,QString)),this,SLOT(getChat(int,QString)));
+    coopConn->connectHost();
     return 1;
 }
 
@@ -217,8 +313,8 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
     if (deleteLenght == addLength)/*我也不知道为什么会有那么多相等出现*/
         //直接返回.不处理
         return ;
-    qDebug()<<tr("cursor position")<<position<<tr("deleted lenght")<<deleteLenght<<tr("add lenght")<<addLength;
-/**
+    logger()->info()<<tr("cursor position")<<position<<tr("deleted lenght")<<deleteLenght<<tr("add lenght")<<addLength;
+    /**
   *几种情况的说明
   *1.没有输入法的情况:
   *1.1 光标持续变化->连续的新增或者删除
@@ -238,9 +334,9 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
         //处理新增的文字
         position = position+deleteLenght-1;
         addLength = (uint)(addLength - deleteLenght);
-//        postInfo(position,addLength);
-//        lastText = myText->toPlainText();
-//        lastPosition = position;
+        //        postInfo(position,addLength);
+        //        lastText = myText->toPlainText();
+        //        lastPosition = position;
         addORdel= true;
         return ;
     }
@@ -248,55 +344,54 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
         //只有在新增的时候保存一个string的备份.在删除的时候进行跟新了.
         //在这里处理删除操作的文字
         addLength = deleteLenght;
-        qDebug()<<tr("delete")
-                <<(textChanged=lastText.mid(position,addLength));
+        logger()->info()<<tr("delete")<<(textChanged=lastText.mid(position,addLength));
         addORdel= false;
         //OK
     }
     else
     {
-        qDebug()<<(textChanged=myText->toPlainText().mid(position,addLength));
+        logger()->info()<<(textChanged=myText->toPlainText().mid(position,addLength));
         addORdel=true;
     }
 
     if (!tryMerge(position,addLength))
     {
-
         postInfo(startPosition,addLength);
         textVersion = textChanged;
         lastLength = 1;
         startPosition = position;
-//        lastPosition = position;
+        //        lastPosition = position;
     }
     else
     {
-//        firstPosition = position;
+        //        firstPosition = position;
 
     }
     lastText = myText->toPlainText();
     lastPosition = position;
     lastaddORdel = addORdel;
     if (lastText.isEmpty())
-        qDebug()<<tr("text data empty!");
+        logger()->info()<<tr("text data empty!");
 }
 
 bool Dialog::postInfo(int position, int length)
 {
     QSqlQuery query;
-    qDebug()<<"database operation:"
-            <<query.exec(QString("INSERT INTO %1 (position, length, word, addORdel, mode) VALUES (%2,%3,'%4',%5,1);")
-                         .arg(fileIO.name)
-                         .arg(position)
-                         .arg(lastLength)
-                         .arg(textVersion)
-                         .arg(lastaddORdel))
-            <<query.lastError().text();
+    logger()->info()<<tr("database operation:")
+                    <<query.exec(QString("INSERT INTO %1 (position, length, word, addORdel, mode) VALUES (%2,%3,'%4',%5,1);")
+                                 .arg(fileIO.name)
+                                 .arg(position)
+                                 .arg(lastLength)
+                                 .arg(textVersion)
+                                 .arg(lastaddORdel))
+                    <<query.lastError().text();
     //接着广播消息什么的
+    return true;
 }
 
 bool Dialog::getInfo(int position, int length)
 {
-
+    return true;
 }
 
 /*拟解决的问题:用户输入英文就直接开始记录数据库导致的数据库数据过多
@@ -314,8 +409,8 @@ bool Dialog::tryMerge(int position, int length)
     }
 
     if ((lastaddORdel == true) &&
-        (lastPosition + length == position) /*&&
-        (strPos + length == other.strPos)*/)
+            (lastPosition + length == position) /*&&
+                        (strPos + length == other.strPos)*/)
     {
         startPosition = isStart?position:startPosition;
         lastLength += length;
@@ -326,8 +421,8 @@ bool Dialog::tryMerge(int position, int length)
 
     // removal to the 'right' using 'Delete' key
     if ((lastaddORdel == false) &&
-        (lastPosition == position) /*&&
-        (strPos + length == other.strPos)*/)
+            (lastPosition == position) /*&&
+                        (strPos + length == other.strPos)*/)
     {
         startPosition = isStart?position:startPosition;
         lastLength += length;
@@ -338,8 +433,8 @@ bool Dialog::tryMerge(int position, int length)
 
     // removal to the 'left' using 'Backspace'
     if ((lastaddORdel == false) &&
-        (position + length == lastPosition) /*&&
-        (other.strPos + other.length == strPos)*/)
+            (position + length == lastPosition) /*&&
+                        (other.strPos + other.length == strPos)*/)
     {
         startPosition = position;
         lastLength += length;
