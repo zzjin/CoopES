@@ -241,7 +241,7 @@
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(255, 255, 255);</string>
+    <string notr="true">color: #FFFFFF</string>
    </property>
    <property name="text">
     <string>Send</string>
@@ -291,7 +291,7 @@
      <x>187</x>
      <y>70</y>
      <width>606</width>
-     <height>509</height>
+     <height>507</height>
     </rect>
    </property>
   </widget>
@@ -327,7 +327,7 @@
    <property name="geometry">
     <rect>
      <x>188</x>
-     <y>560</y>
+     <y>558</y>
      <width>231</width>
      <height>20</height>
     </rect>
@@ -435,7 +435,7 @@ settings</string>
      <x>592</x>
      <y>70</y>
      <width>200</width>
-     <height>508</height>
+     <height>507</height>
     </rect>
    </property>
    <property name="frameShape">
@@ -596,9 +596,9 @@ settings</string>
    <property name="geometry">
     <rect>
      <x>791</x>
-     <y>70</y>
+     <y>69</y>
      <width>9</width>
-     <height>510</height>
+     <height>509</height>
     </rect>
    </property>
    <property name="cursor">

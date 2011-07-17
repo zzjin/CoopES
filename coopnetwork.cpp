@@ -9,7 +9,7 @@ CoopNetwork::CoopNetwork(QObject *parent) :
 
 void CoopNetwork::set (QString host, int port)
 {
-    //test only
+    //test only ，output all avliable IP addrs
 #ifdef ZZTEST
     QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
     // use the first non-localhost IPv4 address
@@ -20,7 +20,7 @@ void CoopNetwork::set (QString host, int port)
         {
             mHost = ipAddressesList.at(i).toString();
             //                break;
-            qDebug()<<mHost;
+            logger()->debug()<<mHost;
         }
     }
 #endif
@@ -51,23 +51,36 @@ void CoopNetwork::set (QString host, int port)
     mPort=port;
 }
 
-bool CoopNetwork::connectHost (int config)
+bool CoopNetwork::connectHost (networkConfigType config)
 {
-    mSocket = new QTcpSocket(this);
-    mSocket->connectToHost (QHostAddress(mHost),mPort);
-    connect (mSocket,SIGNAL(connected()),this,SLOT(connected()));
-    connect(mSocket,SIGNAL(readyRead()),this,SLOT(dealData()));
-    return true;
+    if (config == CoopNetwork::DEFAULT)
+    {
+        mSocket = new QTcpSocket(this);
+        mSocket->connectToHost (QHostAddress(mHost),mPort);
+        connect (mSocket,SIGNAL(connected()),this,SLOT(connected()));
+        connect(mSocket,SIGNAL(readyRead()),this,SLOT(dealData()));
+        connect(mSocket,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(errorInfo()));
+        return true;
+    }
+    return false;
 }
 
-bool CoopNetwork::send (char *data)
+bool CoopNetwork::send (const char *data)
 {
-    return false;
+    //real send data
+    int temp = mSocket->write(data);
+    return (temp != -1)?true:false;
 }
 
 bool CoopNetwork::send (int sendType, int dataType, QString &data)
 {
-    return false;
+    //send other data
+    QString temp = QString::number (sendType);
+    temp.append ('\n');
+    temp.append (QString::number (dataType));
+    temp.append ('\n');
+    temp.append (data);
+    return send(temp.toStdString().c_str());
 }
 
 bool CoopNetwork::send (int sendType, QString &data)
@@ -76,13 +89,14 @@ bool CoopNetwork::send (int sendType, QString &data)
     QString temp = QString::number (sendType);
     temp.append ('\n');
     temp.append (data);
-    mSocket->write (temp.toStdString().c_str());
-    return true;
+    return send(temp.toStdString().c_str());
+//    mSocket->write (temp.toStdString().c_str());
+//    return true;
 }
 
 void CoopNetwork::connected ()
 {
-    emit state(QString("connected!"));
+    emit state(tr("connected!"));
 }
 
 void CoopNetwork::dealData ()
@@ -103,5 +117,9 @@ void CoopNetwork::dealData ()
     }
     default: break;
     }
+}
 
+void CoopNetwork::errorInfo()
+{
+    emit error(mSocket->errorString());
 }

@@ -55,11 +55,18 @@ int main(int argc, char *argv[])
     a.setOrganizationName("ZZJIN@BUPT");
     a.setOrganizationDomain("blog.zzjin.co.cc/CoopES");
     Log4Qt::Logger::logger("CoopES")->info("CoopES start");
+    //load the application's translate file
     QTranslator appTrans;
     appTrans.load("CoopES_"+QLocale::system().name(),a.applicationDirPath());
     Log4Qt::LogManager::rootLogger()->logger("Init")->info()
-            <<a.tr("read translate file:")<<("CoopES_"+QLocale::system().name());
+            <<"read translate file:"<<("CoopES_"+QLocale::system().name());
     a.installTranslator(&appTrans);
+    //load the qt's default tranlate file
+    QTranslator qtTrans;
+    qtTrans.load("qt_"+QLocale::system().name(),a.applicationDirPath());
+    Log4Qt::LogManager::rootLogger()->logger("Init")->info()
+            <<"read translate file:"<<("qt_"+QLocale::system().name());
+    a.installTranslator(&qtTrans);
     QTextCodec::setCodecForLocale(QTextCodec::codecForLocale());
     QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale());
     QTextCodec::setCodecForTr(QTextCodec::codecForLocale());
@@ -86,14 +93,14 @@ int main(int argc, char *argv[])
             //get the host port
             if (temp == "-p")
                 Log4Qt::LogManager::rootLogger()->logger("Init Input:")->info()
-                        /*重要的转换方式*/
+                        /*important convert argv to qt QString var*/
                         <<"get host port"<<(QString::number (hostPort= (QString(argv[i+1]).toInt ())));
         }
     Dialog w;
     w.setFile(fileInfo_temp);
     w.setUserName(userName);
     Log4Qt::LogManager::rootLogger()->logger("Init")->info()
-            <<a.tr("show main window");
+            <<"now show main window.";
     w.show();
     return a.exec();
 }

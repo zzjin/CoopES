@@ -18,6 +18,12 @@
 #include "qsvlangdef.h"
 #include "qsvsyntaxhighlighter.h"
 
+//标题栏的长度
+const static int pos_min_x = 0;
+const static int pos_max_x = 800-40;
+const static int pos_min_y = 0;
+const static int pos_max_y = 20;
+
 Dialog::Dialog(QWidget *parent) :
     QDialog(parent),
     lastaddORdel(true),
@@ -25,6 +31,7 @@ Dialog::Dialog(QWidget *parent) :
     startPosition(0),
     isStart(true),
     lastLength(0),
+    isMousePressed(false),
     ui(new Ui::Dialog)
 {
     //初始化UI信息
@@ -42,7 +49,8 @@ Dialog::Dialog(QWidget *parent) :
 
     //send button color problem
     //set with a white
-//    ui->chatPushButton->set
+    connect(ui->colorCombo,SIGNAL(currentIndexChanged(QString)),this,SLOT(syntaxColorChanged()));
+    connect(ui->syntaxCombo,SIGNAL(currentIndexChanged(QString)),this,SLOT(syntaxChanged()));
 
     this->setAttribute(Qt::WA_Hover);
 
@@ -53,8 +61,6 @@ Dialog::Dialog(QWidget *parent) :
     connect(ui->mainTextEdit->document(),SIGNAL(contentsChange(int,int,int)),this,SLOT(getContent(int,int,int)));
     myText = ui->mainTextEdit->document();
     //    connect(ui->mainTextEdit,SIGNAL(cursorPositionChanged()),this,SLOT(pushCursor()));
-
-    connect(ui->saveButton,SIGNAL(clicked()),this,SLOT(showDebug()));//debug use only
 
     connect(ui->chatPushButton,SIGNAL(clicked()),this,SLOT(sendChat()));
 
@@ -101,11 +107,6 @@ void Dialog::getChat (int getType, QString data)
     ui->chatLine->clear ();
 }
 
-void Dialog::showDebug ()
-{
-    qDebug()<<"'c''e''s''h''i''SPACE'";
-}
-
 bool Dialog::eventFilter(QObject *object, QEvent *event)
 {
     if (event->type()!=QEvent::Enter && event->type()!=QEvent::Leave)
@@ -144,51 +145,34 @@ void Dialog::delayedAni()
 }
 
 //自己实现的窗口拖动操作
-void Dialog::mouseMoveEvent(QMouseEvent *event)
-{
-    QPoint temp = event->pos();
-    const int pos_min_x = 0;
-    const int pos_max_x = 800-40;
-    const int pos_min_y = 0;
-    const int pos_max_y = 20;
-    if ( temp.x()>pos_min_x && temp.x()<pos_max_x && temp.y()>pos_min_y && temp.y()<pos_max_y )
-    {
-        //只对标题栏范围内的鼠标事件进行处理
-        QPoint newpos = event->globalPos();
-        QPoint upleft = pos0 + newpos - last ;
-        move(upleft);
-    }
-    //    if ( temp.x()>795 &&
-    //         temp.x()<800 &&
-    //         temp.y()>70  &&
-    //         temp.y()<580 )
-    //    {
-    //        //显示版本信息
-    //        ui->versionList->show();
-    //    }
-    //    if ( (temp.x()>0 &&
-    //         temp.x()<590) ||
-    //         (temp.y()>0  &&
-    //         temp.y()<70) )
-    //    {
-    //        //隐藏版本信息
-    //        ui->versionList->hide();
-    //    }
-}
-
 void Dialog::mousePressEvent(QMouseEvent *event)
 {
-    QPoint temp = event->pos();
-    const int pos_min_x =0;
-    const int pos_max_x =800-40;
-    const int pos_min_y =0;
-    const int pos_max_y =20;
-    if ( temp.x()>pos_min_x && temp.x()<pos_max_x && temp.y()>pos_min_y && temp.y()<pos_max_y )
+    mousePosition = event->pos();
+    //只对标题栏范围内的鼠标事件进行处理
+    if (mousePosition.x()<=pos_min_x)
+        return;
+    if ( mousePosition.x()>=pos_max_x)
+        return;
+    if (mousePosition.y()<=pos_min_y )
+        return;
+    if (mousePosition.y()>=pos_max_y)
+        return;
+    isMousePressed = true;
+}
+
+void Dialog::mouseMoveEvent(QMouseEvent *event)
+{
+    if ( isMousePressed==true )
     {
-        //只对标题栏范围内的鼠标事件进行处理。
-        last = event->globalPos();
-        pos0 = event->globalPos() - event->pos();
+        QPoint movePot = event->globalPos() - mousePosition;
+        move(movePot);
     }
+}
+
+void Dialog::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (event)
+        isMousePressed=false;
 }
 
 void Dialog::paintEvent(QPaintEvent *)
@@ -238,8 +222,9 @@ int Dialog::programInit()
     //    logger()->info()<<temp;
     //init internet connect
     coopConn = new  CoopNetwork(this);
-//    coopConn->set ("118.229.175.27");
-    coopConn->set ();
+    coopConn->set ("59.64.139.155");
+    //        coopConn->set ("118.229.175.27");
+    //    coopConn->set ();
     connect(coopConn,SIGNAL(state(QString)),this,SLOT(pushStatusInfo(QString)));
     connect(coopConn,SIGNAL(get(int,QString)),this,SLOT(getChat(int,QString)));
     coopConn->connectHost();
@@ -267,21 +252,19 @@ void Dialog::fillComboBoxes()
     pushStatusInfo(tr("program init OK,set default syntax type C++"));
 }
 
-void Dialog::on_colorCombo_currentIndexChanged( const QString & text )
+void Dialog::syntaxColorChanged()
 {
-    if (disable_combo_updates)
-        return;
-    QTimer::singleShot( 0, this, SLOT(update_syntax_color()) );
+    if (!disable_combo_updates)
+        QTimer::singleShot( 0, this, SLOT(updateSyntaxAndColor()) );
 }
 
-void Dialog::on_syntaxCombo_currentIndexChanged( const QString & text )
+void Dialog::syntaxChanged()
 {
-    if (disable_combo_updates)
-        return;
-    QTimer::singleShot( 0, this, SLOT(update_syntax_color()) );
+    if (!disable_combo_updates)
+        QTimer::singleShot( 0, this, SLOT(updateSyntaxAndColor()) );
 }
 
-void Dialog::update_syntax_color()
+void Dialog::updateSyntaxAndColor()
 {
     delete highlight;
     delete defLang;
@@ -313,7 +296,7 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
     if (deleteLenght == addLength)/*我也不知道为什么会有那么多相等出现*/
         //直接返回.不处理
         return ;
-    logger()->info()<<tr("cursor position")<<position<<tr("deleted lenght")<<deleteLenght<<tr("add lenght")<<addLength;
+    logger()->debug()<<tr("cursor position")<<position<<tr("deleted lenght")<<deleteLenght<<tr("add lenght")<<addLength;
     /**
   *几种情况的说明
   *1.没有输入法的情况:
@@ -344,13 +327,13 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
         //只有在新增的时候保存一个string的备份.在删除的时候进行跟新了.
         //在这里处理删除操作的文字
         addLength = deleteLenght;
-        logger()->info()<<tr("delete")<<(textChanged=lastText.mid(position,addLength));
+        logger()->debug()<<tr("delete")<<(textChanged=lastText.mid(position,addLength));
         addORdel= false;
         //OK
     }
     else
     {
-        logger()->info()<<(textChanged=myText->toPlainText().mid(position,addLength));
+        logger()->debug()<<(textChanged=myText->toPlainText().mid(position,addLength));
         addORdel=true;
     }
 
@@ -377,20 +360,21 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
 bool Dialog::postInfo(int position, int length)
 {
     QSqlQuery query;
-    logger()->info()<<tr("database operation:")
+    logger()->debug()<<tr("database operation:")
                     <<query.exec(QString("INSERT INTO %1 (position, length, word, addORdel, mode) VALUES (%2,%3,'%4',%5,1);")
                                  .arg(fileIO.name)
                                  .arg(position)
                                  .arg(lastLength)
                                  .arg(textVersion)
                                  .arg(lastaddORdel))
-                    <<query.lastError().text();
+                   <<query.lastError().text()<<tr("current length:")<<length;
     //接着广播消息什么的
     return true;
 }
 
 bool Dialog::getInfo(int position, int length)
 {
+    logger()->debug()<<tr("position: ")<<position<<tr("length: ")<<length;
     return true;
 }
 
@@ -410,7 +394,7 @@ bool Dialog::tryMerge(int position, int length)
 
     if ((lastaddORdel == true) &&
             (lastPosition + length == position) /*&&
-                        (strPos + length == other.strPos)*/)
+                                                                (strPos + length == other.strPos)*/)
     {
         startPosition = isStart?position:startPosition;
         lastLength += length;
@@ -422,7 +406,7 @@ bool Dialog::tryMerge(int position, int length)
     // removal to the 'right' using 'Delete' key
     if ((lastaddORdel == false) &&
             (lastPosition == position) /*&&
-                        (strPos + length == other.strPos)*/)
+                                                                (strPos + length == other.strPos)*/)
     {
         startPosition = isStart?position:startPosition;
         lastLength += length;
@@ -433,8 +417,7 @@ bool Dialog::tryMerge(int position, int length)
 
     // removal to the 'left' using 'Backspace'
     if ((lastaddORdel == false) &&
-            (position + length == lastPosition) /*&&
-                        (other.strPos + other.length == strPos)*/)
+            (position + length == lastPosition) /*&&  (other.strPos + other.length == strPos)*/)
     {
         startPosition = position;
         lastLength += length;

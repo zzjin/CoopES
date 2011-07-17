@@ -4,9 +4,9 @@ TARGET      = CoopES
 DESTDIR     = ./bin
 TEMPLATE    = app
 CONFIG      += qt\
-            warn_on\
-            debug\
-            console
+            warn_on
+
+VERSION = 0.2.0
 #syntax highlightter include PATH
 INCLUDEPATH +=  ./include/ssyntax
 #log4qt include PATH
@@ -14,11 +14,11 @@ INCLUDEPATH += ./include/log4qt
 #different plaform with different libs
 win32{
     LIBS += ./lib/windows/libqtsourceview.a
-    LIBS +=./lib/windows/liblog4qt1.a
+    LIBS +=./lib/windows/liblog4qt.a
 }
 unix{
     LIBS += ./lib/linux/libqtsourceview.a
-    LIBS +=./lib/linux/liblog4qt1.a
+    LIBS +=./lib/linux/liblog4qt.so.1
 }
 SOURCES     += main.cpp\
             dialog.cpp \
@@ -40,8 +40,6 @@ OBJECTS_DIR += ./tmp
 
 RESOURCES +=
 
-TRANSLATIONS = CoopES_zh_CN.ts \
-               CoopES_en.ts
-
-OTHER_FILES += README \
-    generalBackup.txt
+TRANSLATIONS += CoopES_zh_CN.ts \
+             CoopES_en_US.ts
+OTHER_FILES += README

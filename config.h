@@ -2,10 +2,10 @@
 #define CONFIG_H
 
 
-//配置调试信息
+//config debug infomations
 #define ZZTEST true
 
-//其他配置信息
+//config other infomations
 
 
 #endif // CONFIG_H
