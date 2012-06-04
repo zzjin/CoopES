@@ -49,13 +49,12 @@ Dialog::Dialog(QWidget *parent) :
 
     //send button color problem
     //set with a white
-    connect(ui->colorCombo,SIGNAL(currentIndexChanged(QString)),this,SLOT(syntaxColorChanged()));
-    connect(ui->syntaxCombo,SIGNAL(currentIndexChanged(QString)),this,SLOT(syntaxChanged()));
+    //    ui->chatPushButton->set
 
     this->setAttribute(Qt::WA_Hover);
 
     //取消系统自带的标题栏
-    this->setWindowFlags(Qt::FramelessWindowHint);
+    this->setWindowFlags(Qt::FramelessWindowHint|Qt::WindowMinMaxButtonsHint);
 
     //关联对应的hook到自己的槽(核心)
     connect(ui->mainTextEdit->document(),SIGNAL(contentsChange(int,int,int)),this,SLOT(getContent(int,int,int)));
@@ -171,8 +170,7 @@ void Dialog::mouseMoveEvent(QMouseEvent *event)
 
 void Dialog::mouseReleaseEvent(QMouseEvent *event)
 {
-    if (event)
-        isMousePressed=false;
+    isMousePressed=false;
 }
 
 void Dialog::paintEvent(QPaintEvent *)
@@ -252,19 +250,22 @@ void Dialog::fillComboBoxes()
     pushStatusInfo(tr("program init OK,set default syntax type C++"));
 }
 
-void Dialog::syntaxColorChanged()
+void Dialog::on_colorCombo_currentIndexChanged( const QString & text )
 {
-    if (!disable_combo_updates)
-        QTimer::singleShot( 0, this, SLOT(updateSyntaxAndColor()) );
+    QTextCursor cs = ui->mainTextEdit->textCursor();
+    if (disable_combo_updates)
+        return;
+    QTimer::singleShot( 0, this, SLOT(update_syntax_color()) );
 }
 
-void Dialog::syntaxChanged()
+void Dialog::on_syntaxCombo_currentIndexChanged( const QString & text )
 {
-    if (!disable_combo_updates)
-        QTimer::singleShot( 0, this, SLOT(updateSyntaxAndColor()) );
+    if (disable_combo_updates)
+        return;
+    QTimer::singleShot( 0, this, SLOT(update_syntax_color()) );
 }
 
-void Dialog::updateSyntaxAndColor()
+void Dialog::update_syntax_color()
 {
     delete highlight;
     delete defLang;
@@ -296,7 +297,7 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
     if (deleteLenght == addLength)/*我也不知道为什么会有那么多相等出现*/
         //直接返回.不处理
         return ;
-    logger()->debug()<<tr("cursor position")<<position<<tr("deleted lenght")<<deleteLenght<<tr("add lenght")<<addLength;
+    logger()->info()<<tr("cursor position")<<position<<tr("deleted lenght")<<deleteLenght<<tr("add lenght")<<addLength;
     /**
   *几种情况的说明
   *1.没有输入法的情况:
@@ -327,13 +328,13 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
         //只有在新增的时候保存一个string的备份.在删除的时候进行跟新了.
         //在这里处理删除操作的文字
         addLength = deleteLenght;
-        logger()->debug()<<tr("delete")<<(textChanged=lastText.mid(position,addLength));
+        logger()->info()<<tr("delete")<<(textChanged=lastText.mid(position,addLength));
         addORdel= false;
         //OK
     }
     else
     {
-        logger()->debug()<<(textChanged=myText->toPlainText().mid(position,addLength));
+        logger()->info()<<(textChanged=myText->toPlainText().mid(position,addLength));
         addORdel=true;
     }
 
@@ -360,21 +361,20 @@ void Dialog::getContent(int position,int deleteLenght,int addLength)
 bool Dialog::postInfo(int position, int length)
 {
     QSqlQuery query;
-    logger()->debug()<<tr("database operation:")
+    logger()->info()<<tr("database operation:")
                     <<query.exec(QString("INSERT INTO %1 (position, length, word, addORdel, mode) VALUES (%2,%3,'%4',%5,1);")
                                  .arg(fileIO.name)
                                  .arg(position)
                                  .arg(lastLength)
                                  .arg(textVersion)
                                  .arg(lastaddORdel))
-                   <<query.lastError().text()<<tr("current length:")<<length;
+                    <<query.lastError().text();
     //接着广播消息什么的
     return true;
 }
 
 bool Dialog::getInfo(int position, int length)
 {
-    logger()->debug()<<tr("position: ")<<position<<tr("length: ")<<length;
     return true;
 }
 

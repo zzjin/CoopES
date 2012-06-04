@@ -59,13 +59,13 @@ int main(int argc, char *argv[])
     QTranslator appTrans;
     appTrans.load("CoopES_"+QLocale::system().name(),a.applicationDirPath());
     Log4Qt::LogManager::rootLogger()->logger("Init")->info()
-            <<"read translate file:"<<("CoopES_"+QLocale::system().name());
+            <<a.tr("read translate file:")<<("CoopES_"+QLocale::system().name());
     a.installTranslator(&appTrans);
     //load the qt's default tranlate file
     QTranslator qtTrans;
     qtTrans.load("qt_"+QLocale::system().name(),a.applicationDirPath());
     Log4Qt::LogManager::rootLogger()->logger("Init")->info()
-            <<"read translate file:"<<("qt_"+QLocale::system().name());
+            <<a.tr("read translate file:")<<("qt_"+QLocale::system().name());
     a.installTranslator(&qtTrans);
     QTextCodec::setCodecForLocale(QTextCodec::codecForLocale());
     QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale());
@@ -93,14 +93,14 @@ int main(int argc, char *argv[])
             //get the host port
             if (temp == "-p")
                 Log4Qt::LogManager::rootLogger()->logger("Init Input:")->info()
-                        /*important convert argv to qt QString var*/
+                        /*重要的转换方式*/
                         <<"get host port"<<(QString::number (hostPort= (QString(argv[i+1]).toInt ())));
         }
     Dialog w;
     w.setFile(fileInfo_temp);
     w.setUserName(userName);
     Log4Qt::LogManager::rootLogger()->logger("Init")->info()
-            <<"now show main window.";
+            <<a.tr("show main window");
     w.show();
     return a.exec();
 }

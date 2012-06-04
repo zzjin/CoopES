@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QTextDocument>
+#include <QTextDocumentFragment>
 #include <QMouseEvent>
 #include <QEvent>
 #include <QListWidget>
@@ -41,6 +42,8 @@ class Dialog : public QDialog
         explicit Dialog(QWidget *parent = 0);
     ~Dialog();
 
+private:
+    Ui::Dialog *ui;
 public:
     //set the input name
     void setFile(fileInfo fileName);
@@ -69,12 +72,12 @@ private:
     QString textVersion;/*保存要插入数据库的数据*/
     bool addORdel;/*保存操作类型*/
 
-    bool lastaddORdel;/*上次的操作类型*/
     int lastPosition;/*上次光标位置*/
     int startPosition;/*开始记录数据的位置*/
     bool isStart;/*只在第一次保存开始位置*/
     int lastLength;/*上次修改长度*/
     QString lastText; /*在任何改动生效之前保存上一次的字符串*/
+    bool lastaddORdel;/*上次的操作类型*/
 private slots:
     int programInit();
     void delayedAni();
@@ -111,9 +114,9 @@ private:
     //下面是语法高亮要用到的//////////////////////////////////////
 public slots:
     void fillComboBoxes();
-    void syntaxColorChanged();
-    void syntaxChanged();
-    void updateSyntaxAndColor();
+    void on_colorCombo_currentIndexChanged( const QString & text );
+    void on_syntaxCombo_currentIndexChanged( const QString & text );
+    void update_syntax_color();
 private:
     QsvColorDefFactory	*defColors;
     QsvLangDef		*defLang;
@@ -122,9 +125,6 @@ private:
     bool disable_combo_updates;
     //        QString dataPath;
     //////////////////////////////////////////////////////////
-
-private:
-    Ui::Dialog *ui;
 };
 
 #endif // DIALOG_H

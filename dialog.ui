@@ -596,9 +596,9 @@ settings</string>
    <property name="geometry">
     <rect>
      <x>791</x>
-     <y>69</y>
+     <y>70</y>
      <width>9</width>
-     <height>509</height>
+     <height>510</height>
     </rect>
    </property>
    <property name="cursor">

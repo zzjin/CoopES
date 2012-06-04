@@ -30,7 +30,7 @@
  * Dependencies
  ******************************************************************************/
 #include "../log4qt.h"
-#include "logobjectptr.h"
+#include "helpers/logobjectptr.h"
 
 #include <QtCore/QList>
 #include <QtCore/QReadWriteLock>

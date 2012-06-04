@@ -50,7 +50,7 @@ settings</source>
     <message>
         <location filename="dialog.ui" line="508"/>
         <source>CoopES edit system</source>
-        <translation type="unfinished">CoopES 协同编辑系统</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="dialog.ui" line="611"/>

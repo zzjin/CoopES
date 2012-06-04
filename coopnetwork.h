@@ -13,14 +13,9 @@
 #include "logmanager.h"
 
 
-//general server host name
-const static QString debugHost="localhost";
-//general server host ip
+
+const static QString debugHost="118.229.175.27";
 const static int debugPort =2047;
-/** network
-  *@author zzjin
-  *@date 201106
-  */
 
 class CoopNetwork : public QObject
 {
@@ -28,38 +23,25 @@ class CoopNetwork : public QObject
     LOG4QT_DECLARE_QCLASS_LOGGER
 public:
     explicit CoopNetwork(QObject *parent = 0);
-    enum networkConfigType {DEFAULT,KEEPALIVE,TESTCONN};
 
 signals:
-    //get the connect state
     void state(QString);
-    /** the defalut get data method
-      */
     void get(char*);
     void get(int,int,QString);
     void get(int,QString);
-    void error(QString);
 
-private slots:
+public slots:
     void connected();
     void dealData();
-    void errorInfo();
 
-private:
+public:
     QTcpSocket *mSocket;
 
 public:
-    /** set the host and port
-      *@param   QString   host name
-      *@param   int       host port
-      *@return  void
-      *@note if the host is not given, the 'localhost' will be used
-      *@note if the port is not given, the '2047' will be used
-      */
     void set(QString host=QString(),int port=debugPort);/*{mHost=host;mPort=port;}*/
-    bool connectHost(networkConfigType config=CoopNetwork::DEFAULT);
-    void disconnectHost (){mSocket->disconnectFromHost ();}
-    bool send(const char* data);
+    bool connectHost(int config=0);
+    void disconnectHost (){mSocket->disconnectFromHost ();};
+    bool send(char* data);
     bool send(int sendType,QString &data);
     bool send(int sendType, int dataType, QString &data);
     QString mHost;

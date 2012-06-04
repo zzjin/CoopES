@@ -20,7 +20,7 @@ void CoopNetwork::set (QString host, int port)
         {
             mHost = ipAddressesList.at(i).toString();
             //                break;
-            logger()->debug()<<mHost;
+            qDebug()<<mHost;
         }
     }
 #endif
@@ -51,36 +51,23 @@ void CoopNetwork::set (QString host, int port)
     mPort=port;
 }
 
-bool CoopNetwork::connectHost (networkConfigType config)
+bool CoopNetwork::connectHost (int config)
 {
-    if (config == CoopNetwork::DEFAULT)
-    {
-        mSocket = new QTcpSocket(this);
-        mSocket->connectToHost (QHostAddress(mHost),mPort);
-        connect (mSocket,SIGNAL(connected()),this,SLOT(connected()));
-        connect(mSocket,SIGNAL(readyRead()),this,SLOT(dealData()));
-        connect(mSocket,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(errorInfo()));
-        return true;
-    }
-    return false;
+    mSocket = new QTcpSocket(this);
+    mSocket->connectToHost (QHostAddress(mHost),mPort);
+    connect (mSocket,SIGNAL(connected()),this,SLOT(connected()));
+    connect(mSocket,SIGNAL(readyRead()),this,SLOT(dealData()));
+    return true;
 }
 
-bool CoopNetwork::send (const char *data)
+bool CoopNetwork::send (char *data)
 {
-    //real send data
-    int temp = mSocket->write(data);
-    return (temp != -1)?true:false;
+    return false;
 }
 
 bool CoopNetwork::send (int sendType, int dataType, QString &data)
 {
-    //send other data
-    QString temp = QString::number (sendType);
-    temp.append ('\n');
-    temp.append (QString::number (dataType));
-    temp.append ('\n');
-    temp.append (data);
-    return send(temp.toStdString().c_str());
+    return false;
 }
 
 bool CoopNetwork::send (int sendType, QString &data)
@@ -89,14 +76,13 @@ bool CoopNetwork::send (int sendType, QString &data)
     QString temp = QString::number (sendType);
     temp.append ('\n');
     temp.append (data);
-    return send(temp.toStdString().c_str());
-//    mSocket->write (temp.toStdString().c_str());
-//    return true;
+    mSocket->write (temp.toStdString().c_str());
+    return true;
 }
 
 void CoopNetwork::connected ()
 {
-    emit state(tr("connected!"));
+    emit state(QString("connected!"));
 }
 
 void CoopNetwork::dealData ()
@@ -117,9 +103,5 @@ void CoopNetwork::dealData ()
     }
     default: break;
     }
-}
 
-void CoopNetwork::errorInfo()
-{
-    emit error(mSocket->errorString());
 }
